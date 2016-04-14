@@ -1,7 +1,6 @@
 # ProjSplx
 
-[![Build Status](https://travis-ci.org/MPF-Optimization-Laboratory/ProjSplx.jl.svg?branch=master)](https://travis-ci.org/MPF-Optimization-Laboratory/ProjSplx.jl.svg?branch=master)
-
+[![Build Status](https://travis-ci.org/MPF-Optimization-Laboratory/ProjSplx.jl.svg?branch=master)](https://travis-ci.org/MPF-Optimization-Laboratory/ProjSplx.jl)
 
 Routines for projecting onto the simplex
 
