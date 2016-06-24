@@ -1,6 +1,7 @@
 module ProjSplx
 
-export projsplx!, projsplx, projnorm1, projnorm1!
+export projsplx!, projsplx, projnorm1,
+       projnorm1!, projnorm1t, proxinf!
 
 """
 Projection onto the unit simplex {x | sum(x) = τ, x ≥ 0}.
@@ -20,7 +21,7 @@ function projsplx!{T}(b::Vector{T}, τ::T)
     @inbounds for i = 1:n-1
         tsum += b[idx[i]]
         tmax = (tsum - τ)/i
-        if tmax >= b[idx[i+1]]
+        if tmax ≥ b[idx[i+1]]
             bget = true
             break
         end
@@ -50,7 +51,7 @@ function projsplx!{T}(b::Vector{T}, c::Vector{T}, τ::T)
 
     @assert length(b) == length(c) "lengths must match"
     @assert minimum(c) > 0 "c is not positive."
-    
+
     idx = sortperm(b./c, rev=true)
     tsum = csum = zero(T)
 
@@ -106,50 +107,53 @@ function projsplx(b::Vector, c::Vector, τ)
     return x
 end
 
+# s = sign_abs!(x) returns
+#     s[i] = true  if x[i] > 0
+#     s[i] = false otherwise
+# and x = abs(x).
+function sign_abs!(x::Vector)
+  n = length(x)
+  s = Array{Bool}(n)
+  @inbounds for i=1:n
+    s[i] = x[i] ≥ 0
+    x[i] = abs(x[i])
+  end
+  return s
+end
+
+# set_sign!(x, s) sets the sign of x based on s.
+function set_sign!(x::Vector, s::Vector{Bool})
+  n = length(x)
+  @inbounds for i=1:n
+      x[i] = s[i] ? x[i] : -x[i]
+  end
+end
 """
 Projection onto the 1-norm ball
 
-    {x | ||x||_1 ≤ τ }.
+    {x | ||x||₁ ≤ τ }.
 
 In-place variant of `projnorm1`.
 """
 function projnorm1!(b::Vector, τ::Real)
-    if norm(b,1) ≤ τ
-        return
-    end
-    n = length(b)
-    s = Array{Bool}(n)
-    @inbounds for i=1:n
-        s[i] = b[i] >= 0 ? true : false
-        b[i] = abs(b[i])
-    end
+    norm(b,1) > τ || return
+    s = sign_abs!(b)
     projsplx!(b, τ)
-    @inbounds for i=1:n
-        b[i] = s[i] ? b[i] : -b[i]
-    end
+    set_sign!(b, s)
 end
 
 """
 Projection onto the weighted 1-norm ball
 
-    {x | ||diag(c) x||_1 ≤ τ }, with  c > 0.
+    {x | ||diag(c)x||₁ ≤ τ }, c > 0.
 
 In-place variant of `projnorm1`.
 """
 function projnorm1!(b::Vector, c::Vector, τ::Real)
-    if norm(b,1) ≤ τ
-        return
-    end
-    n = length(b)
-    s = Array{Bool}(n)
-    @inbounds for i=1:n
-        s[i] = b[i] >= 0 ? true : false
-        b[i] = abs(b[i])
-    end
+    norm(b,1) > τ || return
+    s = sign_abs!(b)
     projsplx!(b, c, τ)
-    @inbounds for i=1:n
-        b[i] = s[i] ? b[i] : -b[i]
-    end
+    set_sign!(b, s)
 end
 
 """
@@ -174,52 +178,20 @@ function projnorm1(b::Vector, τ::Real)
     return x
 end
 
-#=
-# Specialized 1-norm projection. Not exported in favor of the version above.
-function projnorm1(b::Vector, d::Vector; τ::Real = 1.0)
-
-    # Initialization
-    n = length(b)
-    x = zeros(b)
-    
-    # Check for quick exit.
-    if τ >= norm(d.*b,1)
-        return b
-    elseif τ < eps(1.0)
-        return x
-    end
-
-    # Preprocessing (b is assumed to be >= 0)
-    idx = sort(b ./ d, rev=true) # Descending.
-    permute!(b, idx)
-    permute!(d, idx)
-
-    # Optimize
-    csdb = csd2 = 0
-    soft = alpha1 = 0
-    i = 1
-    while i <= n
-        csdb += d[i].*b[i]
-        csd2 += d[i].*d[i]
-  
-        alpha1 = (csdb - τ) / csd2
-        alpha2 = bd[i]
-
-        if alpha1 >= alpha2
-            break
-        end
-        
-        soft = alpha1
-        i += 1
-    end
-    x[idx[1:i-1]] = b[1:i-1] - d[1:i-1] * max(0,soft)
-
-    # Restore permutation
-    permute!(b, idx)
-    permute!(d, idx)
-
-    return x
+"""
+Proximal map of the scaled infinity norm.
+    prox_inf(x,λ) = x - proj_1norm(x)
+     env_inf(x,λ) = (1/2λ)||x||^2 - (1/2λ)dist^2_1norm(x)
+Modifies `x` in place; returns the envelope.
+"""
+function proxinf!(x::Vector, λ::Real)
+  λ == 0 && return Inf  # quick exit
+  nrmx2 = dot(x,x)
+  xp = projnorm1(x, λ)
+  BLAS.axpy!(-1., xp, x) # x <- x - xp
+  return nrmx2/(2λ) - dot(x,x)/(2λ)
 end
-=#
+
+
 
 end # module
