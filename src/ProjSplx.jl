@@ -180,18 +180,26 @@ end
 
 """
 Proximal map of the scaled infinity norm.
-    prox_inf(x,λ) = x - proj_1norm(x)
-     env_inf(x,λ) = (1/2λ)||x||^2 - (1/2λ)dist^2_1norm(x)
+    prox_inf(x,λ) = x - proj(x | λ𝔹₁)
+     env_inf(x,λ) = (1/2λ)||x||² - (1/2λ)dist²(x | λ𝔹₁)
 Modifies `x` in place; returns the envelope.
 """
 function proxinf!(x::Vector, λ::Real)
-  λ == 0 && return Inf  # quick exit
+  λ == 0 && return norm(x, Inf)
   nrmx2 = dot(x,x)
   xp = projnorm1(x, λ)
   BLAS.axpy!(-1., xp, x) # x <- x - xp
   return nrmx2/(2λ) - dot(x,x)/(2λ)
 end
 
-
+"""
+Proximal map of the scaled infinity norm.
+Return variant of `proxinf!`
+"""
+function proxinf(x::Vector, λ::Real)
+    z = copy(x)
+    proxinf!(z, λ)
+    return z
+end
 
 end # module
