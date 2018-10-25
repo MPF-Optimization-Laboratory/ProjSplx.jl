@@ -42,7 +42,7 @@ Projection onto the weighted simplex.
 
     projsplx!(b, c, τ)
 
-In-place variant of `projsplx`.
+This projects b (in-place) onto the unit simplex weighted by c.
 """
 function projsplx!{T}(b::Vector{T}, c::Vector{T}, τ::T)
 
@@ -128,6 +128,7 @@ function set_sign!(x::Vector, s::Vector{Bool})
       x[i] = s[i] ? x[i] : -x[i]
   end
 end
+
 """
 Projection onto the 1-norm ball
 
