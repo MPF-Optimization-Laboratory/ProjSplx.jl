@@ -1,5 +1,7 @@
 module ProjSplx
 
+using LinearAlgebra
+
 export projsplx!, projsplx, projnorm1,
        projnorm1!, projnorm1t, proxinf!
 
@@ -10,7 +12,7 @@ Projection onto the unit simplex {x | sum(x) = τ, x ≥ 0}.
 
 In-place variant of `projsplx`.
 """
-function projsplx!{T}(b::Vector{T}, τ::T)
+function projsplx!(b::Vector{T}, τ::T) where T
 
     n = length(b)
     bget = false
@@ -44,7 +46,7 @@ Projection onto the weighted simplex.
 
 This projects b (in-place) onto the unit simplex weighted by c.
 """
-function projsplx!{T}(b::Vector{T}, c::Vector{T}, τ::T)
+function projsplx!(b::Vector{T}, c::Vector{T}, τ::T) where T
 
     n = length(b)
     bget = false
@@ -113,7 +115,7 @@ end
 # and x = abs(x).
 function sign_abs!(x::Vector)
   n = length(x)
-  s = Array{Bool}(n)
+  s = Vector{Bool}(undef,n)
   @inbounds for i=1:n
     s[i] = x[i] ≥ 0
     x[i] = abs(x[i])

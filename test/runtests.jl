@@ -1,10 +1,10 @@
 using ProjSplx
-using Base.Test
+using LinearAlgebra, Random, Test
 
-srand(0)
+Random.seed!(0)
 
 # KKT residuals for projection onto simplex.
-function kkt_splx_pass(x, b; c = ones(b), τ=1.0)
+function kkt_splx_pass(x, b; c = ones(eltype(b),length(b)), τ=1.0)
     ϵ = eps(1.0)^(2/3)*maximum(abs,b)
     r = x - b
     γ = dot(x,r)/τ
@@ -16,7 +16,7 @@ function kkt_splx_pass(x, b; c = ones(b), τ=1.0)
 end
 
 # Opt gap for projection onto 1-norm ball.
-function kkt_nrm1_pass(x, b; c = ones(b), τ=1.0)
+function kkt_nrm1_pass(x, b; c = ones(eltype(b),length(b)), τ=1.0)
     ϵ = eps(1.0)^(2/3)*maximum(abs, b)
     r = b - x
     prObj = 0.5*dot(r,r)
