@@ -15,4 +15,4 @@ and the 1-norm ball with radius t:
 Weighted versions also included.
 
 The provided algorithms are based on the projection algorithm devised by
-van den Berg and Friedlander (2008), "Probing the Pareto frontier for basis pursuit solution", SIAM J Optimization 2(31), 2008](https://friedlander.io/files/pdf/2008BergFriedlander.pdf).
+[van den Berg and Friedlander (2008), "Probing the Pareto frontier for basis pursuit solution", SIAM J Optimization 2(31), 2008](https://friedlander.io/files/pdf/2008BergFriedlander.pdf).
